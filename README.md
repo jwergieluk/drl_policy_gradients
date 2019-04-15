@@ -1,37 +1,29 @@
-# The Reacher environment solved using Policy Gradient Algos
+# The Reacher environment solved using Policy Gradient Deep Reinforcement Learning
 
-A deep reinforcement learning agent collecting bananas.
-
-This is a Python implementation of deep q-network based reinforcement learning agent 
-learning to collect yellow bananas and avoid blue bananas in a simulated 3D environment. 
+This is a Python implementation of a policy gradient based reinforcement learning agent 
+learning to solve the "Reacher" environment of Unity's ML-agents collection. 
 
 ![Environment screenshot](env-screenshot.png)
 
 # Description of the environment
 
-The task at hand consists of navigating a flat 3D environment (pictured above) with the goal of
-collecting (stepping over) yellow bananas while avoiding blue bananas.  
+The task tackled in this project consists of solving a control problem for a robotic
+arm with two joints. The goal is to steer the arm such that its tip touches a moving
+ball for as long as possible.
 
 We train a reinforcement learning agent to solve this task. The agent observers
-the environment though a 37-dimensional real vector (state space), consisting of the agents' 
-current velocity, along with ray-based perception of objects around agent's forward direction.
+the environment through a 33-dimensional real vector (state space), consisting of
+position, rotation, velocity, and angular velocities of the arm.
 
 The time is divided into turns. An episode ends after 300 turns. At each turn, 
-the agent chooses one of the following actions:
-
-    0 - move forward.
-    1 - move backward.
-    2 - turn left.
-    3 - turn right.
-
-The chosen action is executed by the environment and the agent receives a numerical reward. 
-Walking over a yellow banana produces a reward of +1 and walking over a blue
-banana results in a negative reward of -1. The goal of the agent is to collect as many
-yellow bananas as possible, while trying to avoid blue bananas, i.e., to maximize
-the cumulative reward at the end of the episode. 
+the agent chooses an action form the four-dimensional continuous space `[-1, 1]^4`.
+The chosen action is executed by the environment and the agent receives a numerical reward.
+Each time the tip of the arm touches the ball, the agent receives the reward of +0.1.
+The goal is to touch the ball for as long as possible which corresponds to
+maximizing the cumulative reward.  
 
 The environment is considered solved, if a trained agent 
-achieves an average cumulative reward above 13 over 100 consecutive episodes.
+achieves an average cumulative reward above +30 over 100 consecutive episodes.
 
 # Installation instructions
 
@@ -47,17 +39,14 @@ The installation instructions are as follows (tested on a Linux system):
 
 0. Clone this repository using
 ```commandline
-git clone https://github.com/jwergieluk/deep_banana_eater.git
+git clone https://github.com/jwergieluk/drl_policy_gradients.git
 ```
-
 1. Install Anaconda Python distribution: https://www.anaconda.com/distribution/#download-section
 2. Create a virtual environment with all the necessary packages and activate it:
-
 ```commandline
-conda create -n deep_banana_eater -c pytorch python=3.6 pytorch torchvision numpy pandas matplotlib requests click
-conda activate deep_banana_eater
+conda create -n drl_policy_gradients -c pytorch python=3.6 pytorch torchvision numpy pandas matplotlib requests click
+conda activate drl_policy_gradients
 ```
-
 3. Clone Udacity's `deep-reinforcement-learning` repository and install the necessary Python package
 into the environment:
 ```commandline
@@ -66,23 +55,21 @@ cd deep-reinforcement-learning/python
 pip install .
 cd ../..
 ```
-
 4. Download the environment files using the provided script:
 ```commandline
-cd deep_banana_eater
+cd drl_policy_gradients
 python download_external_dependencies.py
 cd ..
 ```
-
 5. Clone and install the `ml-agents` package provided by Unity: 
 ```commandline
 git clone --depth 1 https://github.com/Unity-Technologies/ml-agents.git
 cd ml-agents/ml-agents
 pip install .
-cd ../../deep_banana_eater
+cd ../../drl_policy_gradients
 ```
 
-All development and testing of this code was performed on an Arch Linux system in Mar 2019. 
+All development and testing of this code was performed on an Arch Linux system in April 2019. 
 
 # Usage
 
@@ -90,23 +77,23 @@ All development and testing of this code was performed on an Arch Linux system i
 
 Use the following command to load a pretrained agent and watch the agent's interactions with the environment: 
 ```commandline
-python deep_banana_eater.py test --load-weights-from dqn-weights.bin
+python drl_policy_gradients.py test --load-weights-from dqn-weights.bin
 ```
 
 ![Trained agent in action](trained-agent-video.gif)
 
 ## Train an agent
 
-The `train` command of the `deep_banana_eater.py` script can be used to train an agent 
+The `train` command of the `drl_policy_gradients.py` script can be used to train an agent 
 and save the learned parameters to disk: 
 ```commandline
-python deep_banana_eater.py train --max-episodes 1800
+python drl_policy_gradients.py train --max-episodes 1800
 ```
 
 The above command runs 1800 training episodes and saves the results to the `runs` directory.
 
 # License
 
-deep_banana_eater is released under the MIT License. See LICENSE file for details.
+drl_policy_gradients is released under the MIT License. See LICENSE file for details.
 
 Copyright (c) 2019 Julian Wergieluk

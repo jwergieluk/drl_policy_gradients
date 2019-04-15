@@ -61,18 +61,37 @@ class QNet(torch.nn.Module):
 
 
 class Agent0:
+    """ Dummy agent. Performs random actions. """
+    def __init__(self, state_space_dim: int, action_space_dim: int, device):
+        self.state_space_dim = state_space_dim
+        self.action_space_dim = action_space_dim
+        self.device = device
+
+    def load_weights(self, file_name: str):
+        """ Loads the DQN weights from a file and sets the Agent to test mode """
+        pass
+
+    def get_action(self, _):
+        """ Produce a random action """
+        return numpy.random.uniform(-1.0, 1.0, self.action_space_dim)
+
+    def learn(self, state, action, reward, next_state, done):
+        pass
+
+
+class Agent1:
     LEARNING_RATE = 0.0005
     UPDATE_EVERY = 4
     REPLAY_BUFFER_SIZE = 100_000
     BATCH_SIZE = 128
     GAMMA = 0.99
 
-    def __init__(self, state_space_dim: int, no_actions: int, device):
+    def __init__(self, state_space_dim: int, action_space_dim: int, device):
         self.state_space_dim = state_space_dim
-        self.no_actions = no_actions
+        self.action_space_dim = action_space_dim
         self.device = device
 
-        self.q_net = QNet(self.state_space_dim, self.no_actions)
+        self.q_net = QNet(self.state_space_dim, self.action_space_dim)
         self.q_net.to(device)
         self.optimizer = torch.optim.Adam(self.q_net.parameters(), lr=self.LEARNING_RATE)
         self.loss = torch.nn.MSELoss()
@@ -97,7 +116,7 @@ class Agent0:
     def get_action(self, state):
         """ Produce an optimal action for a given state """
         if random.random() <= self.epsilon():
-            return random.randint(0, self.no_actions-1)
+            return random.randint(0, self.action_space_dim - 1)
 
         state = torch.from_numpy(state).float().unsqueeze(0).to(self.device)
         self.q_net.eval()
@@ -149,7 +168,7 @@ class Agent0:
 class UnityEnvWrapper:
     """ This class provides gym-like wrapper around the unity environment """
 
-    def __init__(self, env_file: str = 'Banana_Linux_NoVis/Banana.x86_64'):
+    def __init__(self, env_file: str = 'Reacher_Linux/Reacher.x86_64'):
         self._env = UnityEnvironment(file_name=env_file)
         self._brain_name = self._env.brain_names[0]
         self._brain = self._env.brains[self._brain_name]
@@ -178,8 +197,8 @@ class UnityEnvWrapper:
 
 def train(max_episodes: int):
     """ Train the agent using a head-less environment and save the DQN weights when done """
-    env = UnityEnvWrapper('Banana_Linux_NoVis/Banana.x86_64')
-    agent = Agent0(env.state_space_dim, env.action_space_size, DEVICE)
+    env = UnityEnvWrapper('Reacher_Linux/Reacher.x86_64')
+    agent = Agent1(env.state_space_dim, env.action_space_size, DEVICE)
 
     data = []
     scores = []
@@ -215,9 +234,10 @@ def train(max_episodes: int):
 
 def test(weights_file_name: str):
     """ Load DQN weights and run the agent """
-    env = UnityEnvWrapper('Banana_Linux/Banana.x86_64')
+    env = UnityEnvWrapper('Reacher_Linux/Reacher.x86_64')
     agent = Agent0(env.state_space_dim, env.action_space_size, DEVICE)
-    agent.load_weights(weights_file_name)
+    if weights_file_name is not None:
+        agent.load_weights(weights_file_name)
 
     state = env.reset(train_mode=False)
     score = 0
@@ -238,7 +258,7 @@ def test(weights_file_name: str):
 @click.group()
 @click.version_option()
 def cli():
-    """ deep_banana_eater -- command line interface """
+    """ drl_policy_gradients -- command line interface """
 
 
 @cli.command('train')

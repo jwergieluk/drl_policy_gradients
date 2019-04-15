@@ -151,6 +151,4 @@ crashlytics-build.properties
 fabric.properties
 
 *.zip
-Banana_Linux
-VisualBanana_Linux
-Banana_Linux_NoVis
+Reacher_Linux
