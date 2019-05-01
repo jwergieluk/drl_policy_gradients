@@ -1,7 +1,7 @@
 # The Reacher environment solved using Policy Gradient Deep Reinforcement Learning
 
 This is a Python implementation of a policy gradient based reinforcement learning agent 
-learning to solve the "Reacher" environment of Unity's ML-agents collection. 
+learning to solve the "Reacher" environment from Unity's ML-agents collection. 
 
 ![Environment screenshot](env-screenshot.png)
 
@@ -15,7 +15,7 @@ We train a reinforcement learning agent to solve this task. The agent observers
 the environment through a 33-dimensional real vector (state space), consisting of
 position, rotation, velocity, and angular velocities of the arm.
 
-The time is divided into turns. An episode ends after 300 turns. At each turn, 
+The time is divided into turns. An episode ends after 300 turns. In each turn, 
 the agent chooses an action form the four-dimensional continuous space `[-1, 1]^4`.
 The chosen action is executed by the environment and the agent receives a numerical reward.
 Each time the tip of the arm touches the ball, the agent receives the reward of +0.1.
@@ -69,7 +69,7 @@ pip install .
 cd ../../drl_policy_gradients
 ```
 
-All development and testing of this code was performed on an Arch Linux system in April 2019. 
+All development and testing of this code was performed on an Arch Linux system in April and Mai 2019. 
 
 # Usage
 
@@ -77,7 +77,7 @@ All development and testing of this code was performed on an Arch Linux system i
 
 Use the following command to load a pretrained agent and watch the agent's interactions with the environment: 
 ```commandline
-python drl_policy_gradients.py test --load-weights-from dqn-weights.bin
+python drl_policy_gradients.py test --load-weights-from weights.bin
 ```
 
 ![Trained agent in action](trained-agent-video.gif)

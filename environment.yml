@@ -1,4 +1,4 @@
-name: deep_banana_eater
+name: drl_policy_gradients
 channels:
   - conda-forge
   - pytorch
@@ -169,5 +169,3 @@ dependencies:
     - torchvision==0.2.2
     - unityagents==0.4.0
     - widgetsnbextension==3.4.2
-prefix: /home/julian/anaconda3/envs/deep_banana_eater
-
