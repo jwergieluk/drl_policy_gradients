@@ -1,9 +1,0 @@
-QNet(
-  (_net): Sequential(
-    (0): Linear(in_features=37, out_features=96, bias=True)
-    (1): ReLU()
-    (2): Linear(in_features=96, out_features=96, bias=True)
-    (3): ReLU()
-    (4): Linear(in_features=96, out_features=4, bias=True)
-  )
-)
