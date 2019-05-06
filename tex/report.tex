@@ -15,6 +15,7 @@
 \newcommand{\actionSpaceAlg}{\mathcal A}
 \newcommand{\policy}{\pi}
 \newcommand{\discountFactor}{\gamma}
+\newcommand{\prob}{\mathbb P}
 
 \begin{document}
 
@@ -35,7 +36,15 @@ performance of the agent and provide a list of possible future model improvement
 
 \subsection{Summary of the notation}
 
-We consider a Markov Decision Process with measurable state and action spaces
+In this write-up I am going to cast the core ideas of policy gradient methods
+into a rigorous probabilistic framework. Much of the confusion and
+difficulty of understanding reinforcement learning comes from sloppy and
+incomplete mathematical notation.
+
+Let's setup up the state for the show and define a probability space
+$\left( \Omega, \mathcal F, \prob \right)$.
+
+Consider a Markov Decision Process with measurable state and action spaces
 $(\stateSpace, \stateSpaceAlg)$ and $(\actionSpace, \actionSpaceAlg)$.
 A policy $\policy$ is a Markov kernel from $(\stateSpace, \stateSpaceAlg)$ to
 $(\actionSpace, \actionSpaceAlg)$, i.e.\ for each $s\in\stateSpace$, 
@@ -45,22 +54,28 @@ The trajectory
 \begin{align*}
     S_0, A_0, R_1, S_1, A_1, R_2, \ldots
 \end{align*}
-encodes the sequence of states, actions and resulting numerical rewards. The
-rewards $R_i$ take values in $\R$. 
+encodes a sequence of states, actions and resulting numerical rewards pertaining 
+to a policy $\policy$ indexed by $t\in\N$. The rewards $R_i$ take values in $\R$. 
 The return or discounted future reward $G_t$ at $t\in\N$ is 
 \begin{align*}
     G_t &= \sum_{k=0}^{\infty} \discountFactor^{k} R_{t+k+1}.
 \end{align*}
 
-The dynamics of the environment is governed by the probability measure $P$
-living in a probability space $(\Omega, \mathcal F)$. 
-The central object of interest is the transition probability measure
-$P(. \vb s, a)$ which is the distribution of $S_i$ under the conditions
-$S_{i-1} = s$ and $A_{i-1} = a$ for fixed $s\in\stateSpace$ and $a\in\actionSpace$.
+The central object of interest is the mechanics of the world encoded in the
+transition probability measure $\prob(. \vb s, a)$. For $i>0$, it is the distribution of
+$S_i$ under the conditions $S_{i-1} = s$ and $A_{i-1} = a$ for fixed
+$s\in\stateSpace$ and $a\in\actionSpace$. This distribution does not depend on $i$. 
 
-To simplify the setup, we assume that $R_i = \rho(S_i)$, i.e.\ the reward is a 
-deterministic function of the state. Problems that do not fit into this 
-setup can easily be transformed in ones that comply with it. 
+To simplify the setup, we assume that the reward $R_i$ at time $i$ is a deterministic
+function of the state-action pair, i.e.\ $R_i = \rho(S_i)$ with $\rho: \stateSpace\to\R$.
+This restriction is convenient and does not cause any trouble: 
+Problems that do not fit into this setup can easily be transformed in ones
+that comply with it by extending the state space. 
+
+In reinforcement learning, we parametrize the policy $\policy_\theta$ with
+an $\R^{d}$ vector $\theta$. The goal is to find good values for $\theta$ 
+which lead to high cumulative expected reward $G_{0}$.
+
 
 
 
