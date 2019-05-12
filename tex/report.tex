@@ -71,7 +71,7 @@ at $i\in\N$ is defined as
     G_i &= \sum_{k=0}^{\infty} \discountFactor^{k} R_{i+k+1},
     \label{def:return}
 \end{align}
-where $\gamma$ is a hyperparameter from the interval $(0,1]$, used to guarantee
+where $\discountFactor$ is a hyperparameter from the interval $(0,1)$, used to guarantee
 the convergence of the series (\ref{def:return}).
 
 Since $\trajectory$ is a sequence of random variables, and therefore itself a random
@@ -107,23 +107,46 @@ an $\R^{d}$ vector $\theta$, $d\geq 1$. The goal is to find good values for $\th
 which lead to high cumulative expected reward
 \begin{align*}
     J\left( \theta \right) &= \E_{\theta} \left[ G_0 \right] 
-    = \E_{\theta} \left[ \sum_{k=0}^{\infty} \gamma^{k} R_{k+1} \right].
+    = \E_{\theta} \left[ \sum_{k=0}^{\infty} \discountFactor^{k} R_{k+1} \right].
 \end{align*}
 The subscript $\theta$ next to the expectation operator indicates that
 the underlying probability measure $\prob_{\theta}$ combines both
 $\prob$ and $\policy_{\theta}$.
 
+\subsection{Value functions}
+
+The \key{state-value function} is defined for each state $s\in\stateSpace$ as
+\begin{align}
+    V_{\theta}(s) &= \E_{\theta} \left[ G_0 | S_{0} = s \right] =
+    \E_{\theta}\left[\sum_{k=0}^{\infty} \discountFactor^{k} R_{k+1} | 
+        S_{0} = s \right].
+    \label{def:state-value-function}
+\end{align}
+The \key{action-value function} is defined for each state-action pair
+$(s,a)\in\stateSpace\times\actionSpace$ as
+\begin{align}
+    Q_{\theta}(s,a) &= \E_{\theta} \left[ G_0 | S_0 = s, A_{0} = a \right] = 
+    \E_{\theta}\left[\sum_{k=0}^{\infty} \discountFactor^{k} R_{k+1} | 
+        S_0 = s, A_{0} = a \right].
+    \label{def:action-value-function}
+\end{align}
+The \key{advantage function} is the difference
+\begin{align}
+    A_{\theta}(s,a) &= V_{\theta}(s,a) - Q_{\theta}(s,a).
+    \label{def:advantage-function}
+\end{align}
+
 \subsection{Episodic and perpetual tasks} 
 Reinforcement learning tasks can be partitioned into two categories, depending
 on whether the task can be completed. A task is called \key{episodic} if
-there is an end of the task, i.e.\ some notion of ``begin done''.
-If there is no such notion, the task is called \key{perpetual}.
+there is an end of the task, i.e.\ some notion of ``being done''.
+If there is no such notion, the task is called \key{perpetual}
 \footnote{In the literature, people use the adjective ``continuous''.
     But we already have ``continuous spaces'', ``continuous time'', ``continuous function'', etc.
-    The work ``perpetual'' is much better at conveying the property 
-    of running indefinitely long. See e.g.\ \href{https://www.youtube.com/watch?v=t5TK1OxEj9A}{``Testament of the 
-    doomslayer''}.
-} 
+    The word ``perpetual'' is much better at conveying the property 
+    of running indefinitely long. 
+    See e.g.\ \href{https://www.youtube.com/watch?v=t5TK1OxEj9A}{https://www.youtube.com/watch?v=t5TK1OxEj9A}.
+}.
 Typical examples of episodic tasks are games. Most board games like chess and
 go, and computer games fall into this category.
 
@@ -153,7 +176,8 @@ of the policy $\policy$ as
 \begin{align*}
     \policyLik(a | s) = \policy(\left\{a \right\}|s), \, a\in \actionSpace.
 \end{align*}
-$\policyLik(.|s)$ is the probability function of the probability measure $\policy(.|s)$.
+$\policyLik(.|s)$ is the probability function of the probability measure 
+$\policy(.|s)$.
 
 The second case encountered in the literature is the \key{continuous} action
 space $\actionSpace$ which is a ``nice'' subset of $\R^{n_{\actionSpace}}$.
@@ -167,7 +191,7 @@ for an action set $\eta\in\actionSpaceAlg$ we have
 As in the categorial case, we call $\policyLik(.|s)$ the likelihood function of the
 measure $\policy(.|s)$.
 
-\subsection{Technical details}
+\subsection{Technical assumptions}
 In the following list, we gather the technical assumptions.
 \begin{assumption}
     \begin{enumerate}
@@ -176,6 +200,31 @@ In the following list, we gather the technical assumptions.
 
     \label{assumptions}
 \end{assumption}
+
+
+\subsection{Cumulative reward optimization}
+One of our goals is to find the values of the parameter $\theta$ yielding a
+policy that consistently produces high cumulative expected award $J(\theta)$.
+
+The gradient of $J(\theta)$ is given by
+\begin{align*}
+    \nabla_{\theta} J(\theta) &= 
+    \nabla_{\theta} \E_{\theta} \left[ G_{0} \right] = 
+    \E_{\theta} \left[ \sum_{i=0}^{\infty} 
+    \nabla_{\theta}\log\policy_{\theta}(A_i | S_i) G_{0} \right].
+\end{align*}
+
+Using the Markov property we get
+\begin{align*}
+    \nabla_{\theta} J(\theta) &= 
+    \E_{\theta} \left[ \sum_{i=0}^{\infty} 
+    \nabla_{\theta}\log\policy_{\theta}(A_i | S_i) G_{i} \right].
+\end{align*}
+
+
+
+
+
 
 \section{Training analysis}
 
