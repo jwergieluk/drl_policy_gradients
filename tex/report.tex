@@ -1,19 +1,21 @@
 \documentclass[a4paper,12pt]{amsart}
 \usepackage[utf8]{inputenc}\usepackage[T1]{fontenc}
 
-\title{Policy Gradient Algorithms}
+\title{Policy Gradient Algorithms from Probability Theory Perspective}
 \author{Julian Wergieluk}\address{}\email{julian.wergieluk@risklab.com}
 \input{preamble}
 \input{commands}
 
 \usepackage[url=false,backend=biber]{biblatex}
-\addbibresource{literature.bib}
+\addbibresource{rl.bib}
 
 \newcommand{\stateSpace}{\mathbb S}
 \newcommand{\stateSpaceAlg}{\mathcal S}
+\newcommand{\coffinSpace}{\Delta}
 \newcommand{\actionSpace}{\mathbb A}
 \newcommand{\actionSpaceAlg}{\mathcal A}
 \newcommand{\policy}{\pi}
+\newcommand{\policyLik}{f}
 \newcommand{\discountFactor}{\gamma}
 \newcommand{\prob}{\mathbb P}
 \newcommand{\rewardFunc}{\phi}
@@ -45,6 +47,10 @@ into a rigorous probabilistic framework. Much of the confusion and
 difficulty of understanding reinforcement learning comes from sloppy and
 incomplete mathematical notation.
 
+\begin{itemize}
+    \item Define task.
+\end{itemize}
+
 Let's setup up the stage for the show and define a probability space
 $\left( \Omega, \mathcal F, \prob \right)$.
 Consider a Markov Decision Process (MDP) with measurable state and action spaces
@@ -56,18 +62,22 @@ A trajectory
 \begin{align*}
     \trajectory = \left( S_0, A_0, R_1, S_1, A_1, R_2, \ldots \right) 
 \end{align*}
-encodes a sequence of states, actions and resulting numerical rewards
-pertaining to a policy $\policy$ indexed by $t\in\N$. The elements of $\tau$
+encodes a sequence of states, actions and resulting
+numerical rewards pertaining to a policy $\policy$. The elements of $\tau$
 are random variables, such that $S_{0}$ has the \key{start-state distribution} 
 $\startStateDist$ (which does not depend on the policy $\pi$), 
 $\policy(. | s)$ is the conditional distribution of $A_i$ given $S_i = s$ for
 any $s\in\stateSpace$, and $\prob\left(. | S_{i-1}= s, A_{i-1}=a \right)$ is
-the conditional distribution of $S_{i}$.  The rewards $R_i$ are random
-variables taking values in $\R$.  The return or discounted future reward $G_t$
-at $t\in\N$ is defined as
-\begin{align*}
-    G_t &= \sum_{k=0}^{\infty} \discountFactor^{k} R_{t+k+1}.
-\end{align*}
+the conditional distribution of $S_{i}$. The rewards $R_i$ are random
+variables taking values in $\R$. The return or discounted future reward $G_t$
+at $i\in\N$ is defined as
+\begin{align}
+    G_i &= \sum_{k=0}^{\infty} \discountFactor^{k} R_{i+k+1},
+    \label{def:return}
+\end{align}
+where $\gamma$ is a hyperparameter from the interval $(0,1]$, used to guarantee
+the convergence of the series (\ref{def:return}).
+
 Since $\trajectory$ is a sequence of random variables, and therefore itself a random
 variable taking values in the trajectory space 
 \begin{align*}
@@ -76,41 +86,75 @@ variable taking values in the trajectory space
 \end{align*}
 we can sample from $\trajectory$ to obtain sequences of the form
 \begin{align*}
-    \left( s_0, a_0, r_1, s_1, a_1, r_2,\ldots \right).
+    \left( s_0, a_0, r_1, s_1, a_1, r_2,\ldots \right)\in\trajectorySpace.
 \end{align*}
-These realizations of $\tau$ are called \key{episodes} or \key{rollouts}.
+These samples of $\tau$ are called \key{episodes} or \key{rollouts}.
 
 The central object of interest is the mechanics of the world encoded in the
 transition probability measure $\prob(. \vb s, a)$. For $i>0$, it is the distribution of
 $S_i$ under the conditions $S_{i-1} = s$ and $A_{i-1} = a$ for fixed
-$s\in\stateSpace$ and $a\in\actionSpace$. This distribution does not depend on $i$. 
+$s\in\stateSpace$ and $a\in\actionSpace$. This distribution does not depend on $i$, and,
+more importantly, does not depend on the policy $\policy$. 
 
 To simplify the setup, we assume that the reward $R_i$ at time $i$ is a deterministic
 function of the relevant states and actions. Depending on the problem at hand
 these are the three common choices encountered in the literature:
-\begin{align}
-    R_{i} &= \rewardFunc_{3}(S_{i-1}, A_{i-1}, S_{i}) \\
-    R_{i} &= \rewardFunc_{2}(A_{i-1}, S_{i}) \\
-    R_{i} &= \rewardFunc_{1}(S_{i})
-\end{align}
+\begin{align*}
+    R_{i} &= \rewardFunc_{1}(S_{i}), \\
+    R_{i} &= \rewardFunc_{2}(A_{i-1}, S_{i}), \\
+    R_{i} &= \rewardFunc_{3}(S_{i-1}, A_{i-1}, S_{i})
+\end{align*}
+$\rewardFunc_{1}$ is probably the most frequently used form.
 
 In reinforcement learning, we parametrize the policy $\policy_\theta$ with
-an $\R^{d}$ vector $\theta$. The goal is to find good values for $\theta$ 
+an $\R^{d}$ vector $\theta$, $d\geq 1$. The goal is to find good values for $\theta$ 
 which lead to high cumulative expected reward
 \begin{align*}
     J\left( \theta \right) &= \E_{\theta} \left[ G_0 \right] 
-    = \E_{\theta} \left[ \sum_{i=0}^{\infty} R_{i+1} \right].
+    = \E_{\theta} \left[ \sum_{k=0}^{\infty} \gamma^{k} R_{k+1} \right].
 \end{align*}
 The subscript $\theta$ next to the expectation operator indicates that
 the underlying probability measure $\prob_{\theta}$ combines both
 $\prob$ and $\policy_{\theta}$.
 
+\subsection{Episodic and continuous tasks} 
+Reinforcement learning tasks can be partitioned into two categories, depending
+on whether the task can be completed. A task is called \key{episodic} if it can
+be completed. Otherwise a task is called \key{continuous}.  Typical examples of
+episodic tasks are games. Most board board games like chess and go, and
+computer games fall into this category.
+
+It is important to note, that many episodic tasks can also run 
+forever. For example, in chess, we can design a policy that ``runs in circles''
+and does not pursue the goal of winning the game. Letting such a 
+policy play against itself will result in an endless game.
+
+What distinguishes an episodic task from a continuous one, is the existence of
+a non-empty set of end states $\coffinSpace$ in $\stateSpace$, aptly called the
+\key{coffin space}, for which we require that $\prob\left( S_{i+1} = S_{i} |
+S_{i} \in \coffinSpace \right) = 1$ and $\prob\left( R_{i} = 0 | S_{i} \in
+\coffinSpace \right) = 1$. This ensures that all the states in $\coffinSpace$
+are absorbing and that no additional reward can be accumulated after the task
+has been completed.
+
+\subsection{Categorial and continuous action spaces}
+
+
+\subsection{Technical details}
+In the following list, we gather the technical assumptions.
+\begin{assumption}
+    \begin{enumerate}
+        \item The reward function $\rewardFunc$ is measurable and bounded.
+    \end{enumerate}
+
+    \label{assumptions}
+\end{assumption}
 
 \section{Training analysis}
 
 \section{Ideas for future work}
 
-%\nocite{meucci2009review, goodman2007}
+\nocite{Cinlar2011}
 \printbibliography
 
 \end{document}

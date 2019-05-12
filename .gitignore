@@ -150,5 +150,10 @@ crashlytics.properties
 crashlytics-build.properties
 fabric.properties
 
+# vscode
+.vscode
+
+# Project specific ignores
 *.zip
 Reacher_Linux*
+
