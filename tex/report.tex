@@ -16,6 +16,10 @@
 \newcommand{\policy}{\pi}
 \newcommand{\discountFactor}{\gamma}
 \newcommand{\prob}{\mathbb P}
+\newcommand{\rewardFunc}{\phi}
+\newcommand{\trajectory}{\tau}
+\newcommand{\trajectorySpace}{\mathbb T}
+\newcommand{\startStateDist}{\rho_0}
 
 \begin{document}
 
@@ -41,25 +45,40 @@ into a rigorous probabilistic framework. Much of the confusion and
 difficulty of understanding reinforcement learning comes from sloppy and
 incomplete mathematical notation.
 
-Let's setup up the state for the show and define a probability space
+Let's setup up the stage for the show and define a probability space
 $\left( \Omega, \mathcal F, \prob \right)$.
-
-Consider a Markov Decision Process with measurable state and action spaces
+Consider a Markov Decision Process (MDP) with measurable state and action spaces
 $(\stateSpace, \stateSpaceAlg)$ and $(\actionSpace, \actionSpaceAlg)$.
 A policy $\policy$ is a Markov kernel from $(\stateSpace, \stateSpaceAlg)$ to
 $(\actionSpace, \actionSpaceAlg)$, i.e.\ for each $s\in\stateSpace$, 
 $\policy(. \vb s)$ is a probability distribution on $\actionSpaceAlg$.
-
-The trajectory
+A trajectory
 \begin{align*}
-    S_0, A_0, R_1, S_1, A_1, R_2, \ldots
+    \trajectory = \left( S_0, A_0, R_1, S_1, A_1, R_2, \ldots \right) 
 \end{align*}
-encodes a sequence of states, actions and resulting numerical rewards pertaining 
-to a policy $\policy$ indexed by $t\in\N$. The rewards $R_i$ take values in $\R$. 
-The return or discounted future reward $G_t$ at $t\in\N$ is 
+encodes a sequence of states, actions and resulting numerical rewards
+pertaining to a policy $\policy$ indexed by $t\in\N$. The elements of $\tau$
+are random variables, such that $S_{0}$ has the \key{start-state distribution} 
+$\startStateDist$ (which does not depend on the policy $\pi$), 
+$\policy(. | s)$ is the conditional distribution of $A_i$ given $S_i = s$ for
+any $s\in\stateSpace$, and $\prob\left(. | S_{i-1}= s, A_{i-1}=a \right)$ is
+the conditional distribution of $S_{i}$.  The rewards $R_i$ are random
+variables taking values in $\R$.  The return or discounted future reward $G_t$
+at $t\in\N$ is defined as
 \begin{align*}
     G_t &= \sum_{k=0}^{\infty} \discountFactor^{k} R_{t+k+1}.
 \end{align*}
+Since $\trajectory$ is a sequence of random variables, and therefore itself a random
+variable taking values in the trajectory space 
+\begin{align*}
+    \trajectorySpace = \stateSpace\times\actionSpace\times 
+        \left( \stateSpace\times\actionSpace\times\R \right)^{\infty},
+\end{align*}
+we can sample from $\trajectory$ to obtain sequences of the form
+\begin{align*}
+    \left( s_0, a_0, r_1, s_1, a_1, r_2,\ldots \right).
+\end{align*}
+These realizations of $\tau$ are called \key{episodes} or \key{rollouts}.
 
 The central object of interest is the mechanics of the world encoded in the
 transition probability measure $\prob(. \vb s, a)$. For $i>0$, it is the distribution of
@@ -67,16 +86,24 @@ $S_i$ under the conditions $S_{i-1} = s$ and $A_{i-1} = a$ for fixed
 $s\in\stateSpace$ and $a\in\actionSpace$. This distribution does not depend on $i$. 
 
 To simplify the setup, we assume that the reward $R_i$ at time $i$ is a deterministic
-function of the state-action pair, i.e.\ $R_i = \rho(S_i)$ with $\rho: \stateSpace\to\R$.
-This restriction is convenient and does not cause any trouble: 
-Problems that do not fit into this setup can easily be transformed in ones
-that comply with it by extending the state space. 
+function of the relevant states and actions. Depending on the problem at hand
+these are the three common choices encountered in the literature:
+\begin{align}
+    R_{i} &= \rewardFunc_{3}(S_{i-1}, A_{i-1}, S_{i}) \\
+    R_{i} &= \rewardFunc_{2}(A_{i-1}, S_{i}) \\
+    R_{i} &= \rewardFunc_{1}(S_{i})
+\end{align}
 
 In reinforcement learning, we parametrize the policy $\policy_\theta$ with
 an $\R^{d}$ vector $\theta$. The goal is to find good values for $\theta$ 
-which lead to high cumulative expected reward $G_{0}$.
-
-
+which lead to high cumulative expected reward
+\begin{align*}
+    J\left( \theta \right) &= \E_{\theta} \left[ G_0 \right] 
+    = \E_{\theta} \left[ \sum_{i=0}^{\infty} R_{i+1} \right].
+\end{align*}
+The subscript $\theta$ next to the expectation operator indicates that
+the underlying probability measure $\prob_{\theta}$ combines both
+$\prob$ and $\policy_{\theta}$.
 
 
 \section{Training analysis}

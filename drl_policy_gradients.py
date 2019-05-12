@@ -1,3 +1,4 @@
+# coding=utf-8
 import math
 import datetime
 import os
@@ -168,7 +169,7 @@ class Agent1:
 class UnityEnvWrapper:
     """ This class provides gym-like wrapper around the unity environment """
 
-    def __init__(self, env_file: str = 'Reacher_Linux/Reacher.x86_64'):
+    def __init__(self, env_file: str):
         self._env = UnityEnvironment(file_name=env_file)
         self._brain_name = self._env.brain_names[0]
         self._brain = self._env.brains[self._brain_name]
@@ -197,8 +198,8 @@ class UnityEnvWrapper:
 
 def train(max_episodes: int):
     """ Train the agent using a head-less environment and save the DQN weights when done """
-    env = UnityEnvWrapper('Reacher_Linux/Reacher.x86_64')
-    agent = Agent1(env.state_space_dim, env.action_space_size, DEVICE)
+    env = UnityEnvWrapper('Reacher_Linux_NoVis/Reacher.x86_64')
+    agent = Agent0(env.state_space_dim, env.action_space_size, DEVICE)
 
     data = []
     scores = []
@@ -234,7 +235,7 @@ def train(max_episodes: int):
 
 def test(weights_file_name: str):
     """ Load DQN weights and run the agent """
-    env = UnityEnvWrapper('Reacher_Linux_NoVis/Reacher.x86_64')
+    env = UnityEnvWrapper('Reacher_Linux/Reacher.x86_64')
     agent = Agent0(env.state_space_dim, env.action_space_size, DEVICE)
     if weights_file_name is not None:
         agent.load_weights(weights_file_name)
