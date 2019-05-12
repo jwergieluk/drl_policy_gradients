@@ -32,7 +32,7 @@ This short note provides a concise description of the model architecture and
 learning algorithms of the agent developed in this project. We also report learning
 performance of the agent and provide a list of possible future model improvements.
 \end{abstract}
-\renewcommand*{\thefootnote}{}\footnote{\today{}}
+%\renewcommand*{\thefootnote}{}\footnote{\today{}}
 
 \section{Description of the learning algorithm}
 
@@ -46,10 +46,6 @@ In this write-up I am going to cast the core ideas of policy gradient methods
 into a rigorous probabilistic framework. Much of the confusion and
 difficulty of understanding reinforcement learning comes from sloppy and
 incomplete mathematical notation.
-
-\begin{itemize}
-    \item Define task.
-\end{itemize}
 
 Let's setup up the stage for the show and define a probability space
 $\left( \Omega, \mathcal F, \prob \right)$.
@@ -117,19 +113,26 @@ The subscript $\theta$ next to the expectation operator indicates that
 the underlying probability measure $\prob_{\theta}$ combines both
 $\prob$ and $\policy_{\theta}$.
 
-\subsection{Episodic and continuous tasks} 
+\subsection{Episodic and perpetual tasks} 
 Reinforcement learning tasks can be partitioned into two categories, depending
-on whether the task can be completed. A task is called \key{episodic} if it can
-be completed. Otherwise a task is called \key{continuous}.  Typical examples of
-episodic tasks are games. Most board board games like chess and go, and
-computer games fall into this category.
+on whether the task can be completed. A task is called \key{episodic} if
+there is an end of the task, i.e.\ some notion of ``begin done''.
+If there is no such notion, the task is called \key{perpetual}.
+\footnote{In the literature, people use the adjective ``continuous''.
+    But we already have ``continuous spaces'', ``continuous time'', ``continuous function'', etc.
+    The work ``perpetual'' is much better at conveying the property 
+    of running indefinitely long. See e.g.\ \href{https://www.youtube.com/watch?v=t5TK1OxEj9A}{``Testament of the 
+    doomslayer''}.
+} 
+Typical examples of episodic tasks are games. Most board games like chess and
+go, and computer games fall into this category.
 
 It is important to note, that many episodic tasks can also run 
 forever. For example, in chess, we can design a policy that ``runs in circles''
 and does not pursue the goal of winning the game. Letting such a 
 policy play against itself will result in an endless game.
 
-What distinguishes an episodic task from a continuous one, is the existence of
+What distinguishes an episodic task from a perpetual one, is the existence of
 a non-empty set of end states $\coffinSpace$ in $\stateSpace$, aptly called the
 \key{coffin space}, for which we require that $\prob\left( S_{i+1} = S_{i} |
 S_{i} \in \coffinSpace \right) = 1$ and $\prob\left( R_{i} = 0 | S_{i} \in
@@ -138,7 +141,31 @@ are absorbing and that no additional reward can be accumulated after the task
 has been completed.
 
 \subsection{Categorial and continuous action spaces}
+The cardinality of the action space has a huge impact on the development of the
+theory of policy gradients as well as on the design and implementation of
+the policy optimization algorithms.
+Essentially, there are two cases we need to deal with. First, if the action
+space has finite number of elements, we call it \key{categorial}. Finite
+number of possible actions implies that the policy $\policy(.|s)$ evaluated at
+the state $s$, can be identified with a vector with $|\actionSpace|$ number of
+elements. Also, it is convenient to define the likelihood function $\policyLik$
+of the policy $\policy$ as 
+\begin{align*}
+    \policyLik(a | s) = \policy(\left\{a \right\}|s), \, a\in \actionSpace.
+\end{align*}
+$\policyLik(.|s)$ is the probability function of the probability measure $\policy(.|s)$.
 
+The second case encountered in the literature is the \key{continuous} action
+space $\actionSpace$ which is a ``nice'' subset of $\R^{n_{\actionSpace}}$.
+Typical example of a continuous action space is a product of finite or infinite
+intervals in $\R^{n_{\actionSpace}}$. Let us assume that, for each state $s$, 
+the measure $\policy(.|s)$ has a density $\policyLik(.|s)$, i.e.\ 
+for an action set $\eta\in\actionSpaceAlg$ we have
+\begin{align*}
+    \policy(\eta | s) = \int_{\eta} \policyLik(a|s) da.
+\end{align*}
+As in the categorial case, we call $\policyLik(.|s)$ the likelihood function of the
+measure $\policy(.|s)$.
 
 \subsection{Technical details}
 In the following list, we gather the technical assumptions.
