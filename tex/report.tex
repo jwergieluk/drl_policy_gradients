@@ -14,6 +14,9 @@
 \newcommand{\coffinSpace}{\Delta}
 \newcommand{\actionSpace}{\mathbb A}
 \newcommand{\actionSpaceAlg}{\mathcal A}
+\newcommand{\stateValueFunc}{V}
+\newcommand{\actionValueFunc}{Q}
+\newcommand{\advantageFunc}{A}
 \newcommand{\policy}{\pi}
 \newcommand{\policyLik}{f}
 \newcommand{\discountFactor}{\gamma}
@@ -117,7 +120,7 @@ $\prob$ and $\policy_{\theta}$.
 
 The \key{state-value function} is defined for each state $s\in\stateSpace$ as
 \begin{align}
-    V_{\theta}(s) &= \E_{\theta} \left[ G_0 | S_{0} = s \right] =
+    \stateValueFunc_{\theta}(s) &= \E_{\theta} \left[ G_0 | S_{0} = s \right] =
     \E_{\theta}\left[\sum_{k=0}^{\infty} \discountFactor^{k} R_{k+1} | 
         S_{0} = s \right].
     \label{def:state-value-function}
@@ -125,14 +128,14 @@ The \key{state-value function} is defined for each state $s\in\stateSpace$ as
 The \key{action-value function} is defined for each state-action pair
 $(s,a)\in\stateSpace\times\actionSpace$ as
 \begin{align}
-    Q_{\theta}(s,a) &= \E_{\theta} \left[ G_0 | S_0 = s, A_{0} = a \right] = 
+    \actionValueFunc_{\theta}(s,a) &= \E_{\theta} \left[ G_0 | S_0 = s, A_{0} = a \right] = 
     \E_{\theta}\left[\sum_{k=0}^{\infty} \discountFactor^{k} R_{k+1} | 
         S_0 = s, A_{0} = a \right].
     \label{def:action-value-function}
 \end{align}
 The \key{advantage function} is the difference
 \begin{align}
-    A_{\theta}(s,a) &= V_{\theta}(s,a) - Q_{\theta}(s,a).
+    \advantageFunc_{\theta}(s,a) &= V_{\theta}(s) - Q_{\theta}(s,a).
     \label{def:advantage-function}
 \end{align}
 
@@ -201,6 +204,14 @@ In the following list, we gather the technical assumptions.
     \label{assumptions}
 \end{assumption}
 
+Let us state that our body of thought compiles without errors.
+\begin{theorem}
+    Suppose the conditions stated in Assumption \ref{assumptions} hold. Then we have:
+    \begin{enumerate}
+        \item The value functions $\stateValueFunc_{\theta}$, 
+            $\actionValueFunc_{\theta}$, and $\advantageFunc_{\theta}$ are well-defined.
+    \end{enumerate}
+\end{theorem}
 
 \subsection{Cumulative reward optimization}
 One of our goals is to find the values of the parameter $\theta$ yielding a
@@ -210,20 +221,30 @@ The gradient of $J(\theta)$ is given by
 \begin{align*}
     \nabla_{\theta} J(\theta) &= 
     \nabla_{\theta} \E_{\theta} \left[ G_{0} \right] = 
-    \E_{\theta} \left[ \sum_{i=0}^{\infty} 
-    \nabla_{\theta}\log\policy_{\theta}(A_i | S_i) G_{0} \right].
+    \E_{\theta} \left[ G_0 \sum_{i=0}^{\infty} 
+    \nabla_{\theta}\log\policy_{\theta}(A_i | S_i) \right].
 \end{align*}
 
 Using the Markov property we get
 \begin{align*}
     \nabla_{\theta} J(\theta) &= 
-    \E_{\theta} \left[ \sum_{i=0}^{\infty} 
-    \nabla_{\theta}\log\policy_{\theta}(A_i | S_i) G_{i} \right].
+    \E_{\theta} \left[ \sum_{i=0}^{\infty} G_{i}
+    \nabla_{\theta}\log\policy_{\theta}(A_i | S_i)  \right].
 \end{align*}
 
+Policy gradient with the state-value baseline
+\begin{align*}
+    \nabla_{\theta} J(\theta) &= 
+    \E_{\theta} \left[ \sum_{i=0}^{\infty} \left( G_{i}-\stateValueFunc_{\theta}(S_i) \right)
+    \nabla_{\theta}\log\policy_{\theta}(A_i | S_i) \right].
+\end{align*}
 
-
-
+Policy gradient with the advantage function baseline
+\begin{align*}
+    \nabla_{\theta} J(\theta) &= 
+    \E_{\theta} \left[ \sum_{i=0}^{\infty} \advantageFunc_{\theta}(S_i, A_i)
+    \nabla_{\theta}\log\policy_{\theta}(A_i | S_i) \right].
+\end{align*}
 
 
 \section{Training analysis}
