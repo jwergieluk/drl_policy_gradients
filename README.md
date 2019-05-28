@@ -44,7 +44,7 @@ git clone https://github.com/jwergieluk/drl_policy_gradients.git
 1. Install Anaconda Python distribution: https://www.anaconda.com/distribution/#download-section
 2. Create a virtual environment with all the necessary packages and activate it:
 ```commandline
-conda create -n drl_policy_gradients -c pytorch python=3.6 pytorch torchvision numpy pandas matplotlib requests click
+conda create -n drl_policy_gradients -c python=3.6 pytorch torchvision numpy pandas matplotlib requests click
 conda activate drl_policy_gradients
 ```
 3. Clone Udacity's `deep-reinforcement-learning` repository and install the necessary Python package
