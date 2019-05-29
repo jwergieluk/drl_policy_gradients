@@ -29,25 +29,12 @@ EPSILON_DECAY = 1e-6
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 
-def hidden_init(layer):  # DELETE
-    fan_in = layer.weight.data.size()[0]
-    lim = 1. / np.sqrt(fan_in)
-    return -lim, lim
-
-
 class Actor(nn.Module):
     """Actor (Policy) Model."""
 
     def __init__(self, state_size, action_size, seed, fc1_units=128, fc2_units=128):
         super().__init__()
         self.seed = torch.manual_seed(seed)
-
-        #self.bn0 = nn.BatchNorm1d(state_size)
-        #self.fc1 = nn.Linear(state_size, fc1_units)
-        #self.bn1 = nn.BatchNorm1d(fc1_units)
-        #self.fc2 = nn.Linear(fc1_units, fc2_units)
-        #self.bn2 = nn.BatchNorm1d(fc2_units)
-        #self.fc3 = nn.Linear(fc2_units, action_size)
 
         self._pi_net = torch.nn.Sequential(
             nn.BatchNorm1d(state_size),
@@ -61,21 +48,10 @@ class Actor(nn.Module):
             nn.Tanh()
         )
 
-        # self.reset_parameters()
-
-    def reset_parameters(self):  # DELETE
-        self.fc1.weight.data.uniform_(*hidden_init(self.fc1))
-        self.fc2.weight.data.uniform_(*hidden_init(self.fc2))
-        self.fc3.weight.data.uniform_(-3e-3, 3e-3)
-
     def forward(self, state):
         """Build an actor (policy) network that maps states -> actions."""
 
         return self._pi_net(state)
-        #x = self.bn0(state)
-        #x = F.relu(self.bn1(self.fc1(x)))
-        #x = F.relu(self.bn2(self.fc2(x)))
-        #return torch.tanh(self.fc3(x))
 
 
 class Critic(nn.Module):
@@ -97,28 +73,11 @@ class Critic(nn.Module):
             nn.Linear(fc2_units, 1)
         )
 
-        #self.bn0 = nn.BatchNorm1d(state_size)
-        #self.fcs1 = nn.Linear(state_size, fcs1_units)
-        #self.fc2 = nn.Linear(fcs1_units+action_size, fc2_units)
-        #self.fc3 = nn.Linear(fc2_units, 1)
-        # self.reset_parameters()
-
-    def reset_parameters(self):  # DELETE
-        self.fcs1.weight.data.uniform_(*hidden_init(self.fcs1))
-        self.fc2.weight.data.uniform_(*hidden_init(self.fc2))
-        self.fc3.weight.data.uniform_(-3e-3, 3e-3)
-
     def forward(self, state, action):
         """Build a critic (value) network that maps (state, action) pairs -> Q-values."""
 
         state_rep = self._q_state_net(state)
         return self._q_net(torch.cat((state_rep, action), dim=1))
-
-        #state = self.bn0(state)
-        #xs = F.relu(self.fcs1(state))
-        #x = torch.cat((xs, action), dim=1)
-        #x = F.relu(self.fc2(x))
-        #return self.fc3(x)
 
 
 class Agent:
@@ -333,6 +292,7 @@ def train(max_episodes: int, episode_len: int = 3000):
 
     data = []
     scores = []
+    episode = 0
     for episode in range(1, max_episodes):
         states = env.reset()
         score = numpy.zeros(env.num_agents)
@@ -350,40 +310,35 @@ def train(max_episodes: int, episode_len: int = 3000):
 
         scores.append(score.mean())
         rolling_average_score = sum(scores[-100:])/min(episode, 100)
-        data.append([score, rolling_average_score])
-        print(f'Episode {episode}. Final score {score.mean():.2f}. Average score (last 100 episodes) {rolling_average_score:.2f}.')
+        data.append([score.mean(), rolling_average_score])
+        print(f'Episode {episode} ({step} steps). Final score {score.mean():.2f}. Average score (last 100 episodes) {rolling_average_score:.2f}.')
 
         if episode % 10 == 0:
-            torch.save(agent.actor_local.state_dict(), 'checkpoint_actor.pth')
-            torch.save(agent.critic_local.state_dict(), 'checkpoint_critic.pth')
-        if rolling_average_score > 30.0:
-            break
+            torch.save(agent.actor_local.state_dict(), f'checkpoint_actor_{episode}.pth')
+            torch.save(agent.critic_local.state_dict(), f'checkpoint_critic_{episode}.pth')
 
-    df = pandas.DataFrame(data=data, index=range(1, max_episodes), columns=['score', 'rolling_avg_score'])
+    df = pandas.DataFrame(data=data, index=range(1, episode+1), columns=['score', 'rolling_avg_score'])
     now_str = datetime.datetime.utcnow().strftime('%Y-%m-%d_%H-%M-%S')
     df.to_csv(f'scores-{now_str}.csv')
 
     env.close()
 
 
-def test(actor_weights_file: str = 'checkpoint_actor.pth',
-         critic_weights_file: str = 'checkpoint_critic.pth'):
-    """ Load DQN weights and run the agent """
+def test(actor_weights_file: str, critic_weights_file: str):
+    """ Load model parameters and run the agent """
     env = UnityMultiAgentEnvWrapper('Reacher_Linux/Reacher.x86_64', train_mode=False)
     agent = Agent(state_size=env.state_space_dim, action_size=env.action_space_dim, random_seed=8276364)
 
-    if actor_weights_file is not None and critic_weights_file is not None:
-        agent.actor_local.load_state_dict(torch.load(actor_weights_file))
-        agent.critic_local.load_state_dict(torch.load(critic_weights_file))
-        agent.actor_local.eval()
-        agent.critic_local.eval()
+    agent.actor_local.load_state_dict(torch.load(actor_weights_file))
+    agent.critic_local.load_state_dict(torch.load(critic_weights_file))
+    agent.actor_local.eval()
+    agent.critic_local.eval()
 
     states = env.reset()
     score = numpy.zeros(env.num_agents)
-    agent.reset()
 
-    for step in range(300):
-        actions = agent.act(states)
+    for step in range(3000):
+        actions = agent.act(states, add_noise=False)
         next_states, rewards, dones, _ = env.step(actions)
         agent.step(states, actions, rewards, next_states, dones, step)
 
@@ -410,8 +365,10 @@ def train_command(max_episodes: int):
 
 
 @cli.command('test')
-@click.option('--actor-weights-file', type=click.Path(dir_okay=False, file_okay=True, readable=True, exists=True))
-@click.option('--critic-weights-file', type=click.Path(dir_okay=False, file_okay=True, readable=True, exists=True))
+@click.option('--actor-weights-file', default='checkpoint_actor.pth',
+              type=click.Path(dir_okay=False, file_okay=True, readable=True, exists=True))
+@click.option('--critic-weights-file', default='checkpoint_critic.pth',
+              type=click.Path(dir_okay=False, file_okay=True, readable=True, exists=True))
 def test_command(actor_weights_file: str, critic_weights_file: str):
     """ Load DQN weights and run the agent """
     test(actor_weights_file, critic_weights_file)
