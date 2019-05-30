@@ -264,7 +264,7 @@ $\theta^{\pi}$ determines $\pi$. Let $J(\theta)$ be the cumulative expected
 reward. Then the policy gradient can be approximated by
 \begin{align*}
     \nabla_{\theta^{\pi}} J & \approx
-    \E \left[ \nabla_{a} Q(S_t, \pi(A_t)) \nabla_{\theta^\pi} \pi(S_t) \right].
+    \E \left[ \nabla_{a} Q(S_t, \pi(S_t)) \nabla_{\theta^\pi} \pi(S_t) \right].
 \end{align*}
 
 To improve the algorithm stability we use soft target updates for the
@@ -307,7 +307,7 @@ value $Q(s,a)$.
 
 \verbatiminput{critic-net.txt}
 
-The list of hyperparameters used by the agent is listed in the Table \ref{tab:hyperparameters}.
+The list of hyperparameters used by the agent is listed in Table \ref{tab:hyperparameters}.
 
 \begin{table}
 %\centering
@@ -317,7 +317,7 @@ The list of hyperparameters used by the agent is listed in the Table \ref{tab:hy
 Hyperparameter & Variable name & Value \\ 
     \hline \hline
     Replay buffer size & \texttt{BUFFER\_SIZE} &  1e6 \\ \hline
-    Batch size & \texttt{BATCH\_SIZE} &  256  \\  \hline
+    Batch size & \texttt{BATCH\_SIZE} &  128  \\  \hline
     Discount factor ($\gamma$) & \texttt{GAMMA} &  0.99 \\ \hline
     Tau & \texttt{TAU} & 1e-3 \\ \hline
     Actor learning rate & \texttt{LR\_ACTOR} & 0.001 \\ \hline
@@ -325,8 +325,8 @@ Hyperparameter & Variable name & Value \\
     Initial value of the & \texttt{EPSILON} & 1.0 \\
     OU process scaling factor $\varepsilon$ && \\ \hline
     OU mean reversion level & & 0.0 \\ \hline
-    OU mean reversion speed & & 0.0 \\ \hline
-    OU volatility (sigma) & & 0.05 \\ \hline
+    OU mean reversion speed & & 0.15 \\ \hline
+    OU volatility (sigma) & & 0.2 \\ \hline
     Learning frequency & \texttt{} &  every 20 time steps \\ \hline
 \end{tabular}
 \label{tab:hyperparameters}
@@ -347,9 +347,6 @@ Hyperparameter & Variable name & Value \\
 \end{itemize}
 
 
-
-
-\nocite{Cinlar2011}
 \nocite{lillicrap2015continuous}
 \printbibliography
 
