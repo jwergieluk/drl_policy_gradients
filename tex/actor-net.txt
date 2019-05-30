@@ -1,0 +1,13 @@
+Actor(
+  (_pi_net): Sequential(
+    (0): BatchNorm1d(33)
+    (1): Linear(in_features=33, out_features=128)
+    (2): BatchNorm1d(128)
+    (3): ReLU()
+    (4): Linear(in_features=128, out_features=128)
+    (5): BatchNorm1d(128)
+    (6): ReLU()
+    (7): Linear(in_features=128, out_features=4)
+    (8): Tanh()
+  )
+)
