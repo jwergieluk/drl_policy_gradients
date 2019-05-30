@@ -1,7 +1,7 @@
 \documentclass[a4paper,12pt]{amsart}
 \usepackage[utf8]{inputenc}\usepackage[T1]{fontenc}
 
-\title{Policy Gradient Algorithms from Probability Theory Perspective}
+\title[Deep Deterministic Policy Gradients]{The Reacher environment solved using the Deep Deterministic Policy Gradient algorithm}
 \author{Julian Wergieluk}\address{}\email{julian.wergieluk@risklab.com}
 \input{preamble}
 \input{commands}
@@ -149,7 +149,6 @@ If there is no such notion, the task is called \key{perpetual}
     But we already have ``continuous spaces'', ``continuous time'', ``continuous function'', etc.
     The word ``perpetual'' is much better at conveying the property 
     of running indefinitely long. 
-    See e.g.\ \href{https://www.youtube.com/watch?v=t5TK1OxEj9A}{https://www.youtube.com/watch?v=t5TK1OxEj9A}.
 }.
 Typical examples of episodic tasks are games. Most board games like chess and
 go, and computer games fall into this category.
@@ -262,15 +261,7 @@ Policy gradient with the advantage function baseline
 
 \section{Training analysis}
 
-
-\paragraph{Actor network architecture.}
-
-\verbatiminput{actor-net.txt}
-
-\paragraph{Critic network architecture.}
-
-\verbatiminput{critic-net.txt}
-
+We train the DDPG agent for 250 episodes consisting of 1000 time steps each.
 
 \begin{figure}[tb]
     \centering
@@ -278,16 +269,62 @@ Policy gradient with the advantage function baseline
     \caption{We train a DDPG agent for 250 episodes. The ``reward'' curve gives
         the average reward for all 20 arms at the end of each episode. The
         ``average reward'' curve is the rolling mean of the ``reward'' curve
-        calculated over 100 episodes.  (For episodes $1,\cdots, 99$ we use an
+        calculated over 100 episodes. (For episodes $1,\cdots, 99$ we use an
         expanding window.)}
     \label{fig:scores}
 \end{figure}
 
+\section{Algorithm parametrization}
+
+\paragraph{The Actor network architecture.} The actor is a feed-forward neural
+network mapping the state of the environment to a deterministic action. The
+network consists of three layers sandwiched with batch normalization. The final
+layer uses the tanh nonlinearity to produce an action vector in the cube $[-1, 1]^{4}$.
+
+\verbatiminput{actor-net.txt}
+
+\paragraph{The Critic network architecture.} The critic is a feed-forward neural 
+network approximating the state-action value function $Q$ mapping state-action
+pairs to the expected cumulative reward. The critic network consists of two subnetworks: 
+a one-layer network combined with batch normalization that maps the state to a high-dimensional 
+state representation, and a two-layer network that maps the aforementioned representation
+of the state concatenated with the action vector to the approximation of the state-action
+value $Q(s,a)$.
+
+\verbatiminput{critic-net.txt}
+
+The list of hyperparameters used by the agent is listed in the Table \ref{tab:hyperparameters}.
+
+\begin{table}
+%\centering
+\caption{List of hyperparameters and their values}
+\begin{tabular}{|l|l|l|l|}
+    \hline
+Hyperparameter & Variable name & Value \\ 
+    \hline \hline
+    Replay buffer size & \texttt{BUFFER\_SIZE} &  1e6 \\ \hline
+    Batch size & \texttt{BATCH\_SIZE} &  256  \\  \hline
+    Discount factor ($\gamma$) & \texttt{GAMMA} &  0.99 \\ \hline
+    Tau & \texttt{TAU} & 1e-3 \\ \hline
+    Actor learning rate & \texttt{LR\_ACTOR} & 0.001 \\ \hline
+    Critic learning rate & \texttt{} & 0.001 \\ \hline
+    Initial value of the & \texttt{EPSILON} & 1.0 \\
+    OU process scaling factor $\varepsilon$ && \\ \hline
+    Learning frequency & \texttt{} &  every 20 time steps \\ \hline
+\end{tabular}
+\label{tab:hyperparameters}
+\end{table}
+
+
 \section{Ideas for future work}
 
 
+
 \begin{itemize}
-    \item Investigation whether the OU process could be replaced with a simple Gaussian noise.
+    \item Investigation whether the OU process generating the exploratory
+        behavior of the actor could be replaced with a simple Gaussian noise.
+    \item Experimenting with bigger networks.
+    \item Actor and critic could use a common network for state processing. 
 \end{itemize}
 
 

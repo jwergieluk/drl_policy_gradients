@@ -16,7 +16,7 @@ from collections import deque, namedtuple
 import click
 
 
-BUFFER_SIZE = int(1e6)  # replay buffer size
+BUFFER_SIZE = int(1e5)  # replay buffer size
 BATCH_SIZE = 256        # minibatch size
 GAMMA = 0.99            # discount factor
 TAU = 1e-3              # for soft update of target parameters
@@ -32,7 +32,7 @@ DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 class Actor(nn.Module):
     """Actor (Policy) Model."""
 
-    def __init__(self, state_size, action_size, seed, fc1_units=128, fc2_units=128):
+    def __init__(self, state_size, action_size, seed, fc1_units=256, fc2_units=256):
         super().__init__()
         self.seed = torch.manual_seed(seed)
 
@@ -45,6 +45,7 @@ class Actor(nn.Module):
             nn.BatchNorm1d(fc2_units),
             nn.ReLU(),
             nn.Linear(fc2_units, action_size),
+            nn.BatchNorm1d(action_size),
             nn.Tanh()
         )
 
@@ -57,20 +58,22 @@ class Actor(nn.Module):
 class Critic(nn.Module):
     """Critic (Value) Model."""
 
-    def __init__(self, state_size, action_size, seed, fcs1_units=128, fc2_units=128):
+    def __init__(self, state_size, action_size, seed, state_layer_units=256, state_action_layer_units=256):
         super().__init__()
         self.seed = torch.manual_seed(seed)
 
         self._q_state_net = nn.Sequential(
             nn.BatchNorm1d(state_size),
-            nn.Linear(state_size, fcs1_units),
+            nn.Linear(state_size, state_layer_units),
+            nn.BatchNorm1d(state_layer_units),
             nn.ReLU()
         )
 
         self._q_net = nn.Sequential(
-            nn.Linear(fcs1_units + action_size, fc2_units),
+            nn.Linear(state_layer_units + action_size, state_action_layer_units),
+            nn.BatchNorm1d(state_action_layer_units),
             nn.ReLU(),
-            nn.Linear(fc2_units, 1)
+            nn.Linear(state_action_layer_units, 1),
         )
 
     def forward(self, state, action):
@@ -89,12 +92,12 @@ class Agent:
         self.seed = random.seed(random_seed)
         self.epsilon = EPSILON
 
-        # Actor Network (w/ Target Network)
+        # Actor Network
         self.actor_local = Actor(state_size, action_size, random_seed).to(DEVICE)
         self.actor_target = Actor(state_size, action_size, random_seed).to(DEVICE)
         self.actor_optimizer = optim.Adam(self.actor_local.parameters(), lr=LR_ACTOR)
 
-        # Critic Network (w/ Target Network)
+        # Critic Network
         self.critic_local = Critic(state_size, action_size, random_seed).to(DEVICE)
         self.critic_target = Critic(state_size, action_size, random_seed).to(DEVICE)
         self.critic_optimizer = optim.Adam(self.critic_local.parameters(), lr=LR_CRITIC, weight_decay=WEIGHT_DECAY)
@@ -105,9 +108,8 @@ class Agent:
         # Replay memory
         self.memory = ReplayBuffer(action_size, BUFFER_SIZE, BATCH_SIZE, random_seed)
 
-        # Make sure target is with the same weight as the source
-        self.hard_update(self.actor_target, self.actor_local)
-        self.hard_update(self.critic_target, self.critic_local)
+        self.copy_weights(self.actor_target, self.actor_local)
+        self.copy_weights(self.critic_target, self.critic_local)
 
     def step(self, states, actions, rewards, next_states, dones, timestep):
         """Save experience in replay memory, and use random sample from buffer to learn."""
@@ -189,12 +191,9 @@ class Agent:
         for target_param, local_param in zip(target_model.parameters(), local_model.parameters()):
             target_param.data.copy_(tau*local_param.data + (1.0-tau)*target_param.data)
 
-    def hard_update(self, target, source):
+    def copy_weights(self, target, source):
         for target_param, param in zip(target.parameters(), source.parameters()):
             target_param.data.copy_(param.data)
-
-    def save_weights(self):
-        pass
 
 
 class OUNoise:
@@ -358,7 +357,7 @@ def cli():
 
 
 @cli.command('train')
-@click.option('--max-episodes', type=click.INT, default=250)
+@click.option('--max-episodes', type=click.INT, default=251)
 def train_command(max_episodes: int):
     """ Train the agent using a head-less environment and save the DQN weights when done """
     train(max_episodes)
