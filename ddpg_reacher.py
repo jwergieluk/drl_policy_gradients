@@ -16,7 +16,7 @@ from collections import deque, namedtuple
 import click
 
 
-BUFFER_SIZE = int(1e5)  # replay buffer size
+BUFFER_SIZE = int(1e6)  # replay buffer size
 BATCH_SIZE = 256        # minibatch size
 GAMMA = 0.99            # discount factor
 TAU = 1e-3              # for soft update of target parameters
@@ -45,7 +45,6 @@ class Actor(nn.Module):
             nn.BatchNorm1d(fc2_units),
             nn.ReLU(),
             nn.Linear(fc2_units, action_size),
-            nn.BatchNorm1d(action_size),
             nn.Tanh()
         )
 
@@ -310,7 +309,9 @@ def train(max_episodes: int, episode_len: int = 3000):
         scores.append(score.mean())
         rolling_average_score = sum(scores[-100:])/min(episode, 100)
         data.append([score.mean(), rolling_average_score])
-        print(f'Episode {episode} ({step} steps). Final score {score.mean():.2f}. Average score (last 100 episodes) {rolling_average_score:.2f}.')
+        print(f'Episode {episode} ({step} steps). Final score {score.mean():.2f}. '
+              f'Average score (last 100 episodes) {rolling_average_score:.2f}. '
+              f'Replay buffer size {len(agent.memory)}.')
 
         if episode % 10 == 0:
             torch.save(agent.actor_local.state_dict(), f'checkpoint_actor_{episode}.pth')

@@ -1,7 +1,7 @@
 \documentclass[a4paper,12pt]{amsart}
 \usepackage[utf8]{inputenc}\usepackage[T1]{fontenc}
 
-\title[Deep Deterministic Policy Gradients]{The Reacher environment solved using the Deep Deterministic Policy Gradient algorithm}
+\title[Deep Deterministic Policy Gradients]{The Reacher environment solved using a Deep Deterministic Policy Gradient algorithm}
 \author{Julian Wergieluk}\address{}\email{julian.wergieluk@risklab.com}
 \input{preamble}
 \input{commands}
@@ -36,20 +36,22 @@ This short note provides a concise description of the model architecture and
 learning algorithms of the agent developed in this project. We also report learning
 performance of the agent and provide a list of possible future model improvements.
 \end{abstract}
+
+%\begin{abstract}
+%This short note provides a concise description of the model architecture and
+%learning algorithms of the agent developed in this project. We also report learning
+%performance of the agent and provide a list of possible future model improvements.
+%\end{abstract}
 %\renewcommand*{\thefootnote}{}\footnote{\today{}}
 
 \section{Description of the learning algorithm}
 
-%Requirement: The report clearly describes the learning algorithm, along with
-%the chosen hyperparameters. It also describes the model architectures for any
-%neural networks.
-
 \subsection{Summary of the notation}
 
-In this write-up I am going to cast the core ideas of policy gradient methods
-into a rigorous probabilistic framework. Much of the confusion and
-difficulty of understanding reinforcement learning comes from sloppy and
-incomplete mathematical notation.
+%In this write-up I am going to cast the core ideas of policy gradient methods
+%into a rigorous probabilistic framework. Much of the confusion and
+%difficulty of understanding reinforcement learning comes from sloppy and
+%incomplete mathematical notation.
 
 Let's setup up the stage for the show and define a probability space
 $\left( \Omega, \mathcal F, \prob \right)$.
@@ -194,74 +196,86 @@ for an action set $\eta\in\actionSpaceAlg$ we have
 As in the categorial case, we call $\policyLik(.|s)$ the likelihood function of the
 measure $\policy(.|s)$.
 
-\subsection{Technical assumptions}
-In the following list, we gather the technical assumptions.
-\begin{assumption}
-    \begin{enumerate}
-        \item The reward function $\rewardFunc$ is measurable and bounded.
-    \end{enumerate}
+%\subsection{Technical assumptions}
+%In the following list, we gather the technical assumptions.
+%\begin{assumption}
+%    \begin{enumerate}
+%        \item The reward function $\rewardFunc$ is measurable and bounded.
+%    \end{enumerate}
+%
+%    \label{assumptions}
+%\end{assumption}
+%
+%Let us state that our body of thought compiles without errors.
+%\begin{theorem}
+%    Suppose the conditions stated in Assumption \ref{assumptions} hold. Then we have:
+%    \begin{enumerate}
+%        \item The value functions $\stateValueFunc_{\theta}$, 
+%            $\actionValueFunc_{\theta}$, and $\advantageFunc_{\theta}$ are well-defined.
+%    \end{enumerate}
+%\end{theorem}
 
-    \label{assumptions}
-\end{assumption}
-
-Let us state that our body of thought compiles without errors.
-\begin{theorem}
-    Suppose the conditions stated in Assumption \ref{assumptions} hold. Then we have:
-    \begin{enumerate}
-        \item The value functions $\stateValueFunc_{\theta}$, 
-            $\actionValueFunc_{\theta}$, and $\advantageFunc_{\theta}$ are well-defined.
-    \end{enumerate}
-\end{theorem}
-
-\subsection{Cumulative reward optimization}
-One of our goals is to find the values of the parameter $\theta$ yielding a
-policy that consistently produces high cumulative expected award $J(\theta)$.
-
-The gradient of $J(\theta)$ is given by
-\begin{align*}
-    \nabla_{\theta} J(\theta) &= 
-    \nabla_{\theta} \E_{\theta} \left[ G_{0} \right] = 
-    \E_{\theta} \left[ G_0 \sum_{i=0}^{\infty} 
-    \nabla_{\theta}\log\policy_{\theta}(A_i | S_i) \right].
-\end{align*}
-
-Using the Markov property we get
-\begin{align*}
-    \nabla_{\theta} J(\theta) &= 
-    \E_{\theta} \left[ \sum_{i=0}^{\infty} G_{i}
-    \nabla_{\theta}\log\policy_{\theta}(A_i | S_i)  \right].
-\end{align*}
-
-Policy gradient with the state-value baseline
-\begin{align*}
-    \nabla_{\theta} J(\theta) &= 
-    \E_{\theta} \left[ \sum_{i=0}^{\infty} \left( G_{i}-\stateValueFunc_{\theta}(S_i) \right)
-    \nabla_{\theta}\log\policy_{\theta}(A_i | S_i) \right].
-\end{align*}
-
-Policy gradient with the advantage function baseline
-\begin{align*}
-    \nabla_{\theta} J(\theta) &= 
-    \E_{\theta} \left[ \sum_{i=0}^{\infty} \advantageFunc_{\theta}(S_i, A_i)
-    \nabla_{\theta}\log\policy_{\theta}(A_i | S_i) \right].
-\end{align*}
+%\subsection{Cumulative reward optimization}
+%One of our goals is to find the values of the parameter $\theta$ yielding a
+%policy that consistently produces high cumulative expected award $J(\theta)$.
+%
+%The gradient of $J(\theta)$ is given by
+%\begin{align*}
+%    \nabla_{\theta} J(\theta) &= 
+%    \nabla_{\theta} \E_{\theta} \left[ G_{0} \right] = 
+%    \E_{\theta} \left[ G_0 \sum_{i=0}^{\infty} 
+%    \nabla_{\theta}\log\policy_{\theta}(A_i | S_i) \right].
+%\end{align*}
+%
+%Using the Markov property we get
+%\begin{align*}
+%    \nabla_{\theta} J(\theta) &= 
+%    \E_{\theta} \left[ \sum_{i=0}^{\infty} G_{i}
+%    \nabla_{\theta}\log\policy_{\theta}(A_i | S_i)  \right].
+%\end{align*}
+%
+%Policy gradient with the state-value baseline
+%\begin{align*}
+%    \nabla_{\theta} J(\theta) &= 
+%    \E_{\theta} \left[ \sum_{i=0}^{\infty} \left( G_{i}-\stateValueFunc_{\theta}(S_i) \right)
+%    \nabla_{\theta}\log\policy_{\theta}(A_i | S_i) \right].
+%\end{align*}
+%
+%Policy gradient with the advantage function baseline
+%\begin{align*}
+%    \nabla_{\theta} J(\theta) &= 
+%    \E_{\theta} \left[ \sum_{i=0}^{\infty} \advantageFunc_{\theta}(S_i, A_i)
+%    \nabla_{\theta}\log\policy_{\theta}(A_i | S_i) \right].
+%\end{align*}
 
 \subsection{Deep deterministic policy gradients}
 
+Deep deterministic policy gradient algorithm is an actor-critic type method
+with a deterministic actor policy $\pi$ mapping states from $\stateSpace$ to
+actions in $\actionSpace$. During the training, the action-value
+function $Q$ is optimized using a standard DQN algorithm as described in
+\cite{mnih2015humanlevel} employing a replay buffer and a separate target
+network.
 
+The policy network is trained using a policy gradient derived from the action-value
+function approximation. Specifically, the parameter vector $\theta$ is given as
+$\theta = (\theta^{Q}, \theta^{\pi})$, where $\theta^{Q}$ determines $Q$ and
+$\theta^{\pi}$ determines $\pi$. Let $J(\theta)$ be the cumulative expected 
+reward. Then the policy gradient can be approximated by
+\begin{align*}
+    \nabla_{\theta^{\pi}} J & \approx
+    \E \left[ \nabla_{a} Q(S_t, \pi(A_t)) \nabla_{\theta^\pi} \pi(S_t) \right].
+\end{align*}
 
-
-
-
-
-
-
-
-
+To improve the algorithm stability we use soft target updates for the
+parameters of both actor and critic networks, described in
+\cite{mnih2015humanlevel}, and batch normalization.
 
 \section{Training analysis}
 
-We train the DDPG agent for 250 episodes consisting of 1000 time steps each.
+We train the DDPG agent for 250 episodes consisting of 1000 time steps each. The cumulative
+reward averaged over 100 episodes reaches the level of 30.23 after completing the episode
+124. 
 
 \begin{figure}[tb]
     \centering
@@ -307,9 +321,12 @@ Hyperparameter & Variable name & Value \\
     Discount factor ($\gamma$) & \texttt{GAMMA} &  0.99 \\ \hline
     Tau & \texttt{TAU} & 1e-3 \\ \hline
     Actor learning rate & \texttt{LR\_ACTOR} & 0.001 \\ \hline
-    Critic learning rate & \texttt{} & 0.001 \\ \hline
+    Critic learning rate & \texttt{LR\_CRITIC} & 0.001 \\ \hline
     Initial value of the & \texttt{EPSILON} & 1.0 \\
     OU process scaling factor $\varepsilon$ && \\ \hline
+    OU mean reversion level & & 0.0 \\ \hline
+    OU mean reversion speed & & 0.0 \\ \hline
+    OU volatility (sigma) & & 0.05 \\ \hline
     Learning frequency & \texttt{} &  every 20 time steps \\ \hline
 \end{tabular}
 \label{tab:hyperparameters}
@@ -325,6 +342,8 @@ Hyperparameter & Variable name & Value \\
         behavior of the actor could be replaced with a simple Gaussian noise.
     \item Experimenting with bigger networks.
     \item Actor and critic could use a common network for state processing. 
+    \item Performance comparison with other continuous control policy gradient algorithms,
+        like, e.g., PPO.
 \end{itemize}
 
 

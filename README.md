@@ -1,7 +1,8 @@
 # The Reacher environment solved using the Deep Deterministic Policy Gradient (DDPG) algorithm
 
 This is a Python implementation of a policy gradient based reinforcement learning agent 
-learning to solve the "Reacher" environment from Unity's ML-agents collection. 
+learning to solve the "Reacher" environment from Unity's ML-agents collection.
+This project was done as part of the Udacity Deep Reinforcement Learning Nanodegree. 
 
 ![Environment screenshot](env-screenshot.png)
 
