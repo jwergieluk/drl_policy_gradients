@@ -32,7 +32,7 @@ DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 class Actor(nn.Module):
     """Actor (Policy) Model."""
 
-    def __init__(self, state_size, action_size, seed, fc1_units=256, fc2_units=256):
+    def __init__(self, state_size, action_size, seed, fc1_units=128, fc2_units=128):
         super().__init__()
         self.seed = torch.manual_seed(seed)
 
@@ -57,20 +57,20 @@ class Actor(nn.Module):
 class Critic(nn.Module):
     """Critic (Value) Model."""
 
-    def __init__(self, state_size, action_size, seed, state_layer_units=256, state_action_layer_units=256):
+    def __init__(self, state_size, action_size, seed, state_layer_units=128, state_action_layer_units=128):
         super().__init__()
         self.seed = torch.manual_seed(seed)
 
         self._q_state_net = nn.Sequential(
             nn.BatchNorm1d(state_size),
             nn.Linear(state_size, state_layer_units),
-            nn.BatchNorm1d(state_layer_units),
+            # nn.BatchNorm1d(state_layer_units),
             nn.ReLU()
         )
 
         self._q_net = nn.Sequential(
             nn.Linear(state_layer_units + action_size, state_action_layer_units),
-            nn.BatchNorm1d(state_action_layer_units),
+            # nn.BatchNorm1d(state_action_layer_units),
             nn.ReLU(),
             nn.Linear(state_action_layer_units, 1),
         )
@@ -135,7 +135,7 @@ class Agent:
         if add_noise:
             action += self.epsilon * self.noise.sample()
 
-        return action
+        return np.clip(action, -1.0, 1.0)
 
     def reset(self):
         self.noise.reset()
@@ -340,7 +340,6 @@ def test(actor_weights_file: str, critic_weights_file: str):
     for step in range(3000):
         actions = agent.act(states, add_noise=False)
         next_states, rewards, dones, _ = env.step(actions)
-        agent.step(states, actions, rewards, next_states, dones, step)
 
         score += rewards
         states = next_states
