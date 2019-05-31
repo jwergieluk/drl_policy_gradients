@@ -78,17 +78,17 @@ All development and testing of this code was performed on an Arch Linux system i
 
 Use the following command to load a pretrained agent parameters  and watch the agent's interactions with the environment: 
 ```commandline
-python drl_policy_gradients.py test --actor-weights-file checkpoint-actor.pth --critic-weights-file checkpoint_critic.pth
+python ddpg_reacher.py test --actor-weights-file checkpoint-actor.pth --critic-weights-file checkpoint_critic.pth
 ```
 
 ![Trained agent in action](trained-agent-video.gif)
 
 ## Train an agent
 
-The `train` command of the `drl_policy_gradients.py` script can be used to train an agent 
+The `train` command of the `ddpg_reacher.py` script can be used to train an agent 
 and save the learned parameters to disk: 
 ```commandline
-python drl_policy_gradients.py train --max-episodes 250
+python ddpg_reacher.py train --max-episodes 250
 ```
 
 The above command runs for 250 training episodes and saves the resulting parameters of a trained agent to the current directory.
